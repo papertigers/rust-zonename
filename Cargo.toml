@@ -1,0 +1,8 @@
+[package]
+name = "zonename"
+version = "0.1.0"
+authors = ["Dave Eddy <dave@daveeddy.com>"]
+
+[dependencies]
+libc = "0.2.43"
+errno = "0.2.4"
