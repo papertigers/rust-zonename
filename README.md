@@ -1,8 +1,10 @@
 rust-zonename
 =============
 
-Rust bindings to `getzoneid(3C)`, `getzoneidbyname(3C)`, and
-`getzonenamebyid(3C)` for Illumos based systems.
+Rust bindings to [getzoneid(3C)](https://illumos.org/man/3C/getzoneid),
+[getzoneidbyname(3C)](https://illumos.org/man/3C/getzoneidbyname), and
+[getzonenamebyid(3C)](https://illumos.org/man/3C/getzonenamebyid) for illumos based
+systems.
 
 Example
 -------
@@ -62,17 +64,14 @@ Usage
 
 ``` rust
 pub const ZONENAME_MAX: usize = 64;
-pub fn getzoneid() -> Result<i32, Errno>;
-pub fn getzoneidbyname(zonename: &str) -> Result<i32, Errno>;
-pub fn getzonenamebyid(id: i32) -> Result<String, Errno>;
-pub fn getzonename() -> Result<String, Errno>;
+pub fn getzoneid() -> Result<i32>;
+pub fn getzoneidbyname(zonename: &str) -> Result<i32>;
+pub fn getzonenamebyid(id: i32) -> Result<String>;
+pub fn getzonename() -> Result<String>;
 ```
-
-- `Errno` is an `Errno` struct from the [errno](https://crates.io/crates/errno) crate
 
 Todo
 ----
 
-1. is it ok that this code can panic?
-2. are the types correct? is this code correct?
-3. publish to crates?
+1. are the types correct? is this code correct?
+2. publish to crates?

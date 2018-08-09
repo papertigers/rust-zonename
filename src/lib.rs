@@ -1,59 +1,94 @@
-extern crate errno;
+#![deny(warnings)]
+#![deny(missing_docs)]
+
+//! # rust-zonename
+//!
+//! The `rust-zonename` crate provides a rust abstraction over the illumos `getzoneid`,
+//! `getzoneidbyname`, and `getzonenamebyid` C library functions.
+
 extern crate libc;
 
+use libc::{c_char, size_t};
 use std::ffi::CString;
-use libc::{c_char,size_t};
-use errno::{Errno,errno};
+use std::io;
 
 mod ffi;
 
+/// Max length of a zone name.
 pub const ZONENAME_MAX: usize = 64;
 
-pub fn getzoneid() -> Result<i32, Errno> {
-    let zoneid = unsafe {
-        ffi::getzoneid()
-    };
+/// Returns the zone ID of the calling process.
+///
+/// # Example
+/// ```
+/// let zoneid = zonename::getzoneid().expect("failed to get zoneid");
+/// ```
+pub fn getzoneid() -> io::Result<i32> {
+    let zoneid = unsafe { ffi::getzoneid() };
 
     match zoneid {
-        -1 => Err(errno()),
+        -1 => Err(io::Error::last_os_error()),
         _ => Ok(zoneid),
     }
 }
 
-pub fn getzoneidbyname(zonename: &str) -> Result<i32, Errno> {
-    let c_zonename = CString::new(zonename).expect("Failed to read zonename");
-
-    let zoneid = unsafe {
-        ffi::getzoneidbyname(c_zonename.as_ptr())
-    };
+/// Returns the zone ID corresponding to the named zone.
+///
+/// # Example
+/// ```
+/// # let zid = zonename::getzoneid().expect("failed to get zoneid");
+/// # let zonename = zonename::getzonenamebyid(zid).expect("failed to get zonename");
+/// let zoneid = zonename::getzoneidbyname(&zonename).expect("failed to get zoneid");
+/// ```
+pub fn getzoneidbyname(zonename: &str) -> io::Result<i32> {
+    let c_zonename = CString::new(zonename)?;
+    let zoneid = unsafe { ffi::getzoneidbyname(c_zonename.as_ptr()) };
 
     match zoneid {
-        -1 => Err(errno()),
+        -1 => Err(io::Error::last_os_error()),
         _ => Ok(zoneid),
     }
 }
 
-pub fn getzonenamebyid(id: i32) -> Result<String, Errno> {
+/// Returns the zone name for the corresponding zone ID.
+///
+/// # Example
+/// ```
+/// # let zoneid = zonename::getzoneid().expect("failed to get zoneid");
+/// let zonename = zonename::getzonenamebyid(zoneid).expect("failed to get zonename");
+/// ```
+pub fn getzonenamebyid(id: i32) -> io::Result<String> {
     let mut buf: Vec<c_char> = Vec::with_capacity(ZONENAME_MAX);
     let ptr = buf.as_mut_ptr() as *mut libc::c_char;
 
-    let len = unsafe {
-        ffi::getzonenamebyid(id, ptr, buf.capacity() as size_t)
-    };
+    let len = unsafe { ffi::getzonenamebyid(id, ptr, buf.capacity() as size_t) };
     if len < 0 {
-        return Err(errno());
+        return Err(io::Error::last_os_error());
     }
 
     assert!(len >= 0);
 
+    // Attempt to force unwrap cstring because the kernel really shouldn't be giving us back
+    // invalid utf8 characters
     let cstring = unsafe {
         CString::from_raw(ptr)
+            .into_string()
+            .expect("found invalid UTF-8 converting from CString to String")
     };
 
-    Ok(cstring.into_string().expect("Failed to read zonename"))
+    Ok(cstring)
 }
 
-pub fn getzonename() -> Result<String, Errno> {
+/// Returns the current zones name for the calling process.
+///
+/// # Example
+/// ```
+/// let zid = zonename::getzoneid().expect("failed to get zoneid");
+/// let zname = zonename::getzonenamebyid(zid).expect("failed to get zonename");
+/// let zonename = zonename::getzonename().expect("failed to get zonename");
+/// assert_eq!(zname, zonename);
+/// ```
+pub fn getzonename() -> io::Result<String> {
     let id = getzoneid()?;
     getzonenamebyid(id)
 }
