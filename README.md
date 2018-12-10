@@ -70,8 +70,7 @@ pub fn getzonenamebyid(id: i32) -> Result<String>;
 pub fn getzonename() -> Result<String>;
 ```
 
-Todo
-----
+License
+-------
 
-1. are the types correct? is this code correct?
-2. publish to crates?
+MIT License
