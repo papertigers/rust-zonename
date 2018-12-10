@@ -1,7 +1,11 @@
 [package]
 name = "zonename"
 version = "0.1.0"
-authors = ["Dave Eddy <dave@daveeddy.com>"]
+authors = ["Dave Eddy <dave@daveeddy.com>", ""Mike Zeller <mike@mikezeller.net>"]
+description = "Bindings to getzoneid(3C), getzoneidbyname(3C), and getzonenamebyid(3C) for illumos based systems."
+repository = "https://github.com/bahamas10/rust-zonename"
+keywords = ["illumos", "zonename", "smartos"]
+license = "MIT"
 
 [dependencies]
 libc = "0.2.43"
